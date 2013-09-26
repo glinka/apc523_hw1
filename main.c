@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
   double elapsed_time = (end-start)/CLOCKS_PER_SEC;
 
   char mandset_outputfilename[1024];
-  snprintf(mandset_outputfilename, sizeof mandset_outputfilename, "%s%d%s%d%s%d%s", "./data/omp_mandelbrodt_numthreads_", n_threads, "_nnodes_", n*m, "_maxiter_", max_iter , ".csv");
+  snprintf(mandset_outputfilename, sizeof mandset_outputfilename, "%s%d%s%d%s%d%s", "./data/omp_mandelbrodt_numthreads_", n_threads, "_nnodes_", n_xpts*n_ypts, "_maxiter_", max_iter , ".csv");
   FILE *mandsetvals_file = fopen(mandset_outputfilename, "w");
   for(i = 0; i < n_ypts; i++) {
     for(j = 0; j < n_xpts; j++) {

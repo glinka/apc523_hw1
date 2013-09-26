@@ -1,10 +1,10 @@
-toCompile = ValuedGrid.o
+toCompile =	main.o
 
-CXX = g++
+CXX = gcc
 
-CXXFLAGS = -g -Wall -std=c++0x #-O3
+CXXFLAGS = -g -Wall -lm -std=c99 -fopenmp #-O3
 
-all: calc_set
+all: calc_set_omp
 
 %.o: %.c
 	$(CXX) $(CXXFLAGS) -c $<
@@ -12,7 +12,7 @@ all: calc_set
 #%.o: %.h
 #    $(CXX) $(CXXFLAGS) -c $<
 
-calc_set: $(toCompile)
+calc_set_omp: $(toCompile)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
 clean:

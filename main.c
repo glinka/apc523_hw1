@@ -5,7 +5,7 @@
 #include <complex.h>
 #include <time.h>
 
-typedef int myarray_type;
+typedef uint8_t myarray_type;
 const myarray_type ZERO_BIT = 0x00;
 const myarray_type ONE_BIT = 0x01;
 myarray_type in_set(const double *x, const double *y, const int *max_iter) {
@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
   const int BITS_PER_ENTRY = 8*sizeof(myarray_type);
   const int n_xpts = n_initial_xpts - (n_initial_xpts%BITS_PER_ENTRY);
   const int n_ypts = n_initial_ypts;// - (n_initial_ypts%8);
-  myarray_type **values = (myarray_type**) calloc(n_ypts, sizeof(myarray_type));
+  myarray_type **values = (myarray_type**) calloc(n_ypts, sizeof(myarray_type*));
   for(int i = 0; i < n_ypts; i++) {
     values[i] = (myarray_type *) calloc(n_xpts/BITS_PER_ENTRY, sizeof(myarray_type));
   }
@@ -55,7 +55,6 @@ int main(int argc, char *argv[]) {
       }
       printf("\n");
   }
-  /**
   for(i = 0; i < n_ypts; i++) {
     for(j = 0; j < n_xpts; j++) {
       j_byteindex = j/BITS_PER_ENTRY;
@@ -63,7 +62,6 @@ int main(int argc, char *argv[]) {
       values[i][j_byteindex] &= (0 << bitshift);
     }
   }
-  **/
   /**
   for(int i = 0; i < n_ypts; i++) {
     for(int j = 0; j < n_xpts/BITS_PER_ENTRY; j++) {

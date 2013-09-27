@@ -2,7 +2,7 @@ toCompile =	main.o
 
 CXX = gcc
 
-CXXFLAGS = -g -Wall -lm -std=c99 -fopenmp #-O3
+CXXFLAGS = -g -Wall -std=c99 -lm#-fopenmp #-O3
 
 all: calc_set_omp
 
@@ -13,7 +13,7 @@ all: calc_set_omp
 #    $(CXX) $(CXXFLAGS) -c $<
 
 calc_set_omp: $(toCompile)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) -o $@ $^ $(CXXFLAGS)
 
 clean:
 	$(RM) *.o 

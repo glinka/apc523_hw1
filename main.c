@@ -5,16 +5,19 @@
 #include <complex.h>
 #include <time.h>
 
-int in_set(const double *x, const double *y, const int *max_iter) {
+typedef int myarray_type;
+const myarray_type ZERO_BIT = 0x00;
+const myarray_type ONE_BIT = 0x01;
+myarray_type in_set(const double *x, const double *y, const int *max_iter) {
   double complex pt = *x + (*y)*I;
   double complex z = 0;
   for(int i = 0; i < (*max_iter); i++) {
     z = z*z + pt;
   }
   if(cabs(z) > 2) {
-    return 0;
+    return ZERO_BIT;
   }
-  return 1;
+  return ONE_BIT;
 }
 
 int main(int argc, char *argv[]) {
@@ -22,7 +25,6 @@ int main(int argc, char *argv[]) {
      instead of properly parsing argumnets, let's go with
      command x_min y_min x_max y_max n_xpts n_ypts max_iter n_threads
   **/
-  typedef uint8_t myarray_type;
   const double x_min = atof(argv[1]);
   const double y_min = atof(argv[2]);
   const double x_max = atof(argv[3]);
@@ -34,12 +36,25 @@ int main(int argc, char *argv[]) {
   const int BITS_PER_ENTRY = 8*sizeof(myarray_type);
   const int n_xpts = n_initial_xpts - (n_initial_xpts%BITS_PER_ENTRY);
   const int n_ypts = n_initial_ypts;// - (n_initial_ypts%8);
-  myarray_type **values = (myarray_type**) malloc(n_ypts*sizeof(myarray_type));
+  myarray_type **values = (myarray_type**) calloc(n_ypts, sizeof(myarray_type));
   for(int i = 0; i < n_ypts; i++) {
-    values[i] = (myarray_type *) malloc(n_xpts/8);
+    values[i] = (myarray_type *) calloc(n_xpts/BITS_PER_ENTRY, sizeof(myarray_type));
   }
   int i, j;
   int j_byteindex, bitshift;
+  for(i = 0; i < n_ypts; i++) {
+      for(j = 0; j < n_xpts; j++) {
+	  j_byteindex = j/BITS_PER_ENTRY;
+	  bitshift = j%BITS_PER_ENTRY;
+	  if(values[i][j_byteindex] & (0x01 << bitshift)) {
+	      printf("%d", 1);
+	  }
+	  else {
+	      printf("%d", 0);
+	  }
+      }
+      printf("\n");
+  }
   /**
   for(i = 0; i < n_ypts; i++) {
     for(j = 0; j < n_xpts; j++) {
@@ -106,19 +121,6 @@ int main(int argc, char *argv[]) {
       printf("\n");
   }
   printf("\n");
-  for(i = 0; i < n_ypts; i++) {
-      for(j = 0; j < n_xpts; j++) {
-	  j_byteindex = j/BITS_PER_ENTRY;
-	  bitshift = j%BITS_PER_ENTRY;
-	  if((1 << bitshift) == (values[i][j_byteindex] & (1 << bitshift))) {
-	      printf("%i", 1);
-	  }
-	  else {
-	      printf("%i", 0);
-	  }
-      }
-      printf("\n");
-  }
   fclose(mandsetvals_file);
   char times_outputfilename[1024];
   snprintf(times_outputfilename, sizeof times_outputfilename, "%s%s", "./data/omp_mandelbrodt_times", ".csv");
@@ -133,6 +135,3 @@ int main(int argc, char *argv[]) {
   **/
   return 0;
 }
-
-
-

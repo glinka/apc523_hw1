@@ -1,4 +1,5 @@
 #include <omp.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <complex.h>
@@ -21,6 +22,7 @@ int main(int argc, char *argv[]) {
      instead of properly parsing argumnets, let's go with
      command x_min y_min x_max y_max n_xpts n_ypts max_iter n_threads
   **/
+  typedef uint8_t myarray_type;
   const double x_min = atof(argv[1]);
   const double y_min = atof(argv[2]);
   const double x_max = atof(argv[3]);
@@ -29,30 +31,45 @@ int main(int argc, char *argv[]) {
   const int n_initial_ypts = atoi(argv[6]);
   const int max_iter = atoi(argv[7]);
   const int n_threads = atoi(argv[8]);
-  const int BITS_PER_ENTRY = 8*sizeof(int);
-  const int n_xpts = n_initial_xpts - (n_initial_xpts%8);
-  const int n_ypts = n_initial_ypts - (n_initial_ypts%8);
-  int **values = (int**) malloc(n_ypts/8);
-  for(int i = 0; i < n_ypts/8; i++) {
-    values[i] = (int *) malloc(n_xpts/8);
+  const int BITS_PER_ENTRY = 8*sizeof(myarray_type);
+  const int n_xpts = n_initial_xpts - (n_initial_xpts%BITS_PER_ENTRY);
+  const int n_ypts = n_initial_ypts;// - (n_initial_ypts%8);
+  myarray_type **values = (myarray_type**) malloc(n_ypts*sizeof(myarray_type));
+  for(int i = 0; i < n_ypts; i++) {
+    values[i] = (myarray_type *) malloc(n_xpts/8);
   }
+  int i, j;
+  int j_byteindex, bitshift;
+  /**
+  for(i = 0; i < n_ypts; i++) {
+    for(j = 0; j < n_xpts; j++) {
+      j_byteindex = j/BITS_PER_ENTRY;
+      bitshift = j%BITS_PER_ENTRY;
+      values[i][j_byteindex] &= (0 << bitshift);
+    }
+  }
+  **/
+  /**
+  for(int i = 0; i < n_ypts; i++) {
+    for(int j = 0; j < n_xpts/BITS_PER_ENTRY; j++) {
+      values[i][j] = (myarray_type) '0';
+    }
+  }
+  **/
   double x_loc = x_min;
   double y_loc = y_max;
   double x_inc = (x_max-x_min)/(n_xpts-1);
   double y_inc = (y_max-y_min)/(n_ypts-1);
-  int i, j;
   clock_t start = clock();
-  int i_byteindex, j_byteindex, bitshift;
-#pragma omp parallel default(shared) private(i, i_byteindex, j, j_byteindex, bitshift) num_threads(n_threads)
+#pragma omp parallel default(shared) private(i, j, j_byteindex, bitshift) num_threads(n_threads)
   {
       for(i = 0; i < n_ypts; i++) {
 	  x_loc = x_min;
-	  i_byteindex = i/BITS_PER_ENTRY;
-#pragma omp for schedule(dynamic)
+#pragma omp for schedule(dynamic, BITS_PER_ENTRY) ordered
 	  for(j = 0; j < n_xpts; j++) {
 	      j_byteindex = j/BITS_PER_ENTRY;
 	      bitshift = j%BITS_PER_ENTRY;
-	      values[i_byteindex][j_byteindex] |= (in_set(&x_loc, &y_loc, &max_iter) << bitshift);
+	      values[i][j_byteindex] |= (((myarray_type) in_set(&x_loc, &y_loc, &max_iter)) << bitshift);
 	      x_loc += x_inc;
 	  }
 	  y_loc -= y_inc;
@@ -76,11 +93,10 @@ int main(int argc, char *argv[]) {
   }
   **/
   for(i = 0; i < n_ypts; i++) {
-      i_byteindex = i/BITS_PER_ENTRY;
       for(j = 0; j < n_xpts; j++) {
 	  j_byteindex = j/BITS_PER_ENTRY;
 	  bitshift = j%BITS_PER_ENTRY;
-	  if((1 << bitshift) == (values[i_byteindex][j_byteindex] & (1 << bitshift))) {
+	  if((1 << bitshift) == (values[i][j_byteindex] & (1 << bitshift))) {
 	      printf("%i", 1);
 	  }
 	  else {
@@ -89,9 +105,20 @@ int main(int argc, char *argv[]) {
       }
       printf("\n");
   }
-  values[0][0] = 14;
-  printf("v0: %i\n", values[0][0]);
-
+  printf("\n");
+  for(i = 0; i < n_ypts; i++) {
+      for(j = 0; j < n_xpts; j++) {
+	  j_byteindex = j/BITS_PER_ENTRY;
+	  bitshift = j%BITS_PER_ENTRY;
+	  if((1 << bitshift) == (values[i][j_byteindex] & (1 << bitshift))) {
+	      printf("%i", 1);
+	  }
+	  else {
+	      printf("%i", 0);
+	  }
+      }
+      printf("\n");
+  }
   fclose(mandsetvals_file);
   char times_outputfilename[1024];
   snprintf(times_outputfilename, sizeof times_outputfilename, "%s%s", "./data/omp_mandelbrodt_times", ".csv");

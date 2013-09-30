@@ -1,6 +1,6 @@
 toCompile =	main.o
 
-CXX = gcc
+CXX = mpicc
 
 CXXFLAGS = -g -Wall -std=c99 -lm #-fopenmp #-O3
 

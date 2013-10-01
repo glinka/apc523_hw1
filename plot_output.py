@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 def get_data(filename, header_rows=1, **kwargs):
     path_to_file = os.path.realpath(filename)
@@ -44,9 +45,9 @@ if __name__=="__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('input_files', nargs='+')
-    args = parser.parse_args
+    args = parser.parse_args()
     #change after properly including header in data files
     for file in args.input_files:
-        data = get_data(file)
+        data = get_data(file, header_rows=0)
         params = {'n':np.sqrt(67108864), 'x_min':-2, 'x_max':0.25, 'y_min':-2, 'y_max':2}
         plot_grid(data, params)

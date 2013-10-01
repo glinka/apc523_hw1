@@ -23,6 +23,7 @@ int main(int argc, char *argv[]) {
      command x_min y_min x_max y_max n_xpts n_ypts max_iter ncores
   **/
     const int STOP = 14587312;
+	const double ROUND_TO_NEAREST_INT = 0.5;
   const double x_min = atof(argv[1]);
   const double y_min = atof(argv[2]);
   const double x_max = atof(argv[3]);
@@ -37,8 +38,8 @@ int main(int argc, char *argv[]) {
   int **values;
   int mpi_check = MPI_Init(&argc, &argv);
   if(mpi_check != MPI_SUCCESS) {
-      return 1;
       MPI_Abort(MPI_COMM_WORLD, mpi_check);
+      return 1;
   }
   MPI_Comm_size(MPI_COMM_WORLD, &ntasks);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -96,7 +97,7 @@ int main(int argc, char *argv[]) {
   else {
       double xy[2];
       MPI_Recv(xy, 2, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, &status);
-      while(xy[0] != STOP) {
+      while(((int) (xy[0] + ROUND_TO_NEAREST_INT)) != STOP) {
 	  int outcome = in_set(&xy[0], &xy[1], &max_iter);
 	  MPI_Send(&outcome, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
 	  MPI_Recv(xy, 2, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, &status);

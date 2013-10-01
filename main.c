@@ -19,7 +19,7 @@ int in_set(const double *x, const double *y, const int *max_iter) {
 int main(int argc, char *argv[]) {
   /**
      instead of properly parsing argumnets, let's go with
-     command x_min y_min x_max y_max n_xpts n_ypts max_iter n_threads
+     command x_min y_min x_max y_max n_xpts n_ypts max_iter nthreads
   **/
   const double x_min = atof(argv[1]);
   const double y_min = atof(argv[2]);
@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
   const int n_xpts = atoi(argv[5]);
   const int n_ypts = atoi(argv[6]);
   const int max_iter = atoi(argv[7]);
-  const int n_threads = atoi(argv[8]);
+  const int nthreads = atoi(argv[8]);
   int **values = (int**) malloc(n_ypts*sizeof(int*));
   for(int i = 0; i < n_xpts; i++) {
     values[i] = (int *) malloc(n_xpts*sizeof(int));
@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
   double y_inc = (y_max-y_min)/(n_ypts-1);
   int i, j;
   clock_t start = clock();
-#pragma omp parallel default(shared) private(i, j) num_threads(n_threads)
+#pragma omp parallel default(shared) private(i, j) num_threads(nthreads)
   {
     for(i = 0; i < n_ypts; i++) {
       x_loc = x_min;
@@ -54,23 +54,10 @@ int main(int argc, char *argv[]) {
   clock_t end = clock();
   double elapsed_time = (end-start)/CLOCKS_PER_SEC;
 
-  char mandset_outputfilename[1024];
-  snprintf(mandset_outputfilename, sizeof mandset_outputfilename, "%s%d%s%d%s%d%s", "./data/omp_mandelbrodt_numthreads_", n_threads, "_nnodes_", n_xpts*n_ypts, "_maxiter_", max_iter , ".csv");
-  FILE *mandsetvals_file = fopen(mandset_outputfilename, "w");
-  for(i = 0; i < n_ypts; i++) {
-    for(j = 0; j < n_xpts; j++) {
-      fprintf(mandsetvals_file, "%d", values[i][j]);
-      if(j != n_xpts-1) {
-	fprintf(mandsetvals_file, ",");
-      }
-    }
-    fprintf(mandsetvals_file, "\n");
-  }
-  fclose(mandsetvals_file);
   char times_outputfilename[1024];
   snprintf(times_outputfilename, sizeof times_outputfilename, "%s%s", "./data/omp_mandelbrodt_times", ".csv");
   FILE *times_file = fopen(times_outputfilename, "a");
-  fprintf(times_file, "%-7d\t%-8d\t%-2d\t%f\n", n_xpts, max_iter, n_threads, elapsed_time);
+  fprintf(times_file, "%-7d\t%-8d\t%-2d\t%f\n", n_xpts, max_iter, nthreads, elapsed_time);
   fclose(times_file);
 
   for(i = 0; i < n_xpts; i++) {

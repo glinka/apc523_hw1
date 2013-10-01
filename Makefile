@@ -2,7 +2,7 @@ toCompile =	main.o
 
 CXX = gcc
 
-CXXFLAGS = -g -Wall -lm -std=c99 -fopenmp #-O3
+CXXFLAGS = -g -Wall -lm -std=c99 -fopenmp -O3
 
 all: calc_set_omp
 

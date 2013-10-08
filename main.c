@@ -31,7 +31,8 @@ int main(int argc, char *argv[]) {
   const int n_xpts = atoi(argv[5]);
   const int n_ypts = atoi(argv[6]);
   const int max_iter = atoi(argv[7]);
-  const int ncores = atoi(argv[8]);
+  const int nnodes = atoi(argv[8]);
+  const int ncores = atoi(argv[9]);
   int ntasks, rank;
   clock_t start = clock();
   int i, j;
@@ -111,7 +112,7 @@ int main(int argc, char *argv[]) {
     char times_outputfilename[1024];
     snprintf(times_outputfilename, sizeof times_outputfilename, "%s%s", "./data/mpi_mandelbrodt_times", ".csv");
     FILE *times_file = fopen(times_outputfilename, "a");
-    fprintf(times_file, "%-7d\t%-8d\t%-2d\t%f\n", n_xpts, max_iter, ncores, elapsed_time);
+    fprintf(times_file, "%-7d\t%-8d\t%-2d\t%f\n", n_xpts, max_iter, nnodes*ncores, elapsed_time);
     fclose(times_file);
 
     for(i = 0; i < n_ypts; i++) {

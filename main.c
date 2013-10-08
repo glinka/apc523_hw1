@@ -38,7 +38,8 @@ int main(int argc, char *argv[]) {
   double x_inc = (x_max-x_min)/(n_xpts-1);
   double y_inc = (y_max-y_min)/(n_ypts-1);
   int i, j;
-  clock_t start = clock();
+  time_t t1, t2;
+  t1 = time(NULL);
 #pragma omp parallel default(shared) private(i, j) num_threads(nthreads)
   {
     for(i = 0; i < n_ypts; i++) {
@@ -51,8 +52,8 @@ int main(int argc, char *argv[]) {
       y_loc -= y_inc;
     }
   }
-  clock_t end = clock();
-  double elapsed_time = (end-start)/CLOCKS_PER_SEC;
+  t2 = time(NULL);
+  double elapsed_time = difftime(t2, t1);
 
   char times_outputfilename[1024];
   snprintf(times_outputfilename, sizeof times_outputfilename, "%s%s", "./data/omp_mandelbrodt_times", ".csv");

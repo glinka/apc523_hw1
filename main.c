@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
   const int nnodes = atoi(argv[8]);
   const int ncores = atoi(argv[9]);
   int ntasks, rank;
-  clock_t start = clock();
+  time_t t1, t2;
   int i, j;
   int **values;
   int mpi_check = MPI_Init(&argc, &argv);
@@ -60,6 +60,7 @@ int main(int argc, char *argv[]) {
       for(i = 0; i < n_ypts; i++) {
 	  values[i] = (int *) calloc(n_xpts , sizeof(int));
       }
+      t1 = time(NULL);
       for(i = 0; i < n_ypts; i++) {
 	  x_loc = x_min;
 	  for(j = 0; j < n_xpts; j++) {
@@ -86,6 +87,7 @@ int main(int argc, char *argv[]) {
 	  }
 	  y_loc -= y_inc;
       }
+      t2 = time(NULL);
       double xy[2] = {STOP, STOP};
       for(int thread = 0; thread < ntasks-1; thread++) {
 	  MPI_Send(xy, 2, MPI_DOUBLE, thread+1, 0, MPI_COMM_WORLD);
@@ -106,9 +108,9 @@ int main(int argc, char *argv[]) {
   }
   MPI_Finalize();
   clock_t end = clock();
-  double elapsed_time = (end-start)/CLOCKS_PER_SEC;
 
   if(rank == 0) {
+    double elapsed_time = difftime(t2, t1);
     char times_outputfilename[1024];
     snprintf(times_outputfilename, sizeof times_outputfilename, "%s%s", "./data/mpi_mandelbrodt_times", ".csv");
     FILE *times_file = fopen(times_outputfilename, "a");

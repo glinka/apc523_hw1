@@ -109,7 +109,6 @@ int main(int argc, char *argv[]) {
       }
   }
   MPI_Finalize();
-  clock_t end = clock();
 
   if(rank == 0) {
     double elapsed_time = difftime(t2, t1);

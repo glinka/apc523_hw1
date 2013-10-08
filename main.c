@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <complex.h>
 #include <time.h>
+#include "png.h"
+#include "writepng.h"
 
 int in_set(const double *x, const double *y, const int *max_iter) {
   double complex pt = *x + (*y)*I;
@@ -36,7 +38,7 @@ int main(int argc, char *argv[]) {
   int ntasks, rank;
   time_t t1, t2;
   int i, j;
-  int **values;
+  png_byte **values;
   int mpi_check = MPI_Init(&argc, &argv);
   if(mpi_check != MPI_SUCCESS) {
       MPI_Abort(MPI_COMM_WORLD, mpi_check);
@@ -56,9 +58,9 @@ int main(int argc, char *argv[]) {
     for(i = 0; i < ntasks-1; i++) {
       thread_tracker[i] = (int*) malloc(2*sizeof(int));
     }
-      values = (int**) calloc(n_ypts, sizeof(int*));
+      values = (png_byte**) calloc(n_ypts, sizeof(png_byte*));
       for(i = 0; i < n_ypts; i++) {
-	  values[i] = (int *) calloc(n_xpts , sizeof(int));
+	  values[i] = (png_byte *) calloc(n_xpts , sizeof(png_byte));
       }
       t1 = time(NULL);
       for(i = 0; i < n_ypts; i++) {
@@ -77,7 +79,7 @@ int main(int argc, char *argv[]) {
 		  int current_thread = status.MPI_SOURCE;
 		  int recvd_i = thread_tracker[current_thread-1][0];
 		  int recvd_j = thread_tracker[current_thread-1][1];
-		  values[recvd_i][recvd_j] = outcome;
+		  values[recvd_i][recvd_j] = 255*outcome;
 		  double xy[2] = {x_loc, y_loc};
 		  MPI_Send(xy, 2, MPI_DOUBLE, current_thread, 0, MPI_COMM_WORLD);
 		  x_loc += x_inc;
@@ -116,6 +118,23 @@ int main(int argc, char *argv[]) {
     FILE *times_file = fopen(times_outputfilename, "a");
     fprintf(times_file, "%-7d\t%-8d\t%-2d\t%f\n", n_xpts, max_iter, nnodes*ncores, elapsed_time);
     fclose(times_file);
+
+    char png_filename[1024];
+    snprintf(png_filename, sizeof png_filename, "%s%i%s%i%s%i%s", "./figs/mpi_plot_", n_xpts, "_", nnodes, "_", ncores, ".csv");
+    FILE *png_img = fopen(png_filename, "wb");
+    png_structp ppng = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    png_infop ipng = png_create_info_struct(ppng);
+    if (setjmp(png_jmpbuf(ppng))) {
+        png_destroy_write_struct(&ppng, &ipng);
+        return 2;
+    }
+    png_init_io(ppng, png_img);
+    png_set_IHDR(ppng, ipng, n_xpts, n_ypts, 8, PNG_COLOR_TYPE_GRAY, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+    png_write_info(ppng, ipng);
+    for(i = 0; i < n_ypts; i++) {
+	png_write_row(ppng, values[i]);
+    }
+    png_write_end(ppng, NULL);
 
     for(i = 0; i < n_ypts; i++) {
       free(values[i]);

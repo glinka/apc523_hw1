@@ -2,7 +2,7 @@ toCompile =	main.o
 
 CXX = mpicc
 
-CXXFLAGS = -g -Wall -std=c99 -lm -O3
+CXXFLAGS = -g -Wall -I /usr/include/libpng -std=c99 -lm -lpng -O3
 
 all: calc_set_mpi
 

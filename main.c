@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
     fclose(times_file);
 
     char png_filename[1024];
-    snprintf(png_filename, sizeof png_filename, "%s%i%s%i%s%i%s", "./figs/mpi_plot_", n_xpts, "_", nnodes, "_", ncores, ".csv");
+    snprintf(png_filename, sizeof png_filename, "%s%i%s%i%s%i%s", "./figs/mpi_plot_", n_xpts, "_", nnodes, "_", ncores, ".png");
     FILE *png_img = fopen(png_filename, "wb");
     png_structp ppng = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     png_infop ipng = png_create_info_struct(ppng);

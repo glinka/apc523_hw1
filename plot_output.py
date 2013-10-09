@@ -47,6 +47,8 @@ if __name__=="__main__":
     args = parser.parse_args
     #change after properly including header in data files
     for file in args.input_files:
-        data = get_data(file)
-        params = {'n':np.sqrt(67108864), 'x_min':-2, 'x_max':0.25, 'y_min':-2, 'y_max':2}
-        plot_grid(data, params)
+        data = get_data(file, header_rows=0)
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.plot(data[2], data[3])
+        plt.show()
